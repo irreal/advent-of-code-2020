@@ -1,21 +1,12 @@
-import { getNodeAtPosition } from "./getNodeAtPosition.ts";
-import { Node } from "./models.ts";
+import { Coordinates } from "./models.ts";
 
 export function setStatusAtPosition(
-  nodes: Node[],
-  x: number,
-  y: number,
-  z: number,
-  w: number,
+  nodes: Map<Coordinates, boolean>,
+  coordinates: Coordinates,
   isActive: boolean
-): Node[] {
-  const node = getNodeAtPosition(nodes, x, y, z, w);
-  if (!node) {
-    return [...nodes, { isActive, x, y, z, w }];
-  }
-  const newNodes = nodes.filter(
-    (n) => !(n.x === x && n.y === y && n.z === z && n.w === w)
+) {
+  nodes.set(
+    { x: coordinates.x, y: coordinates.y, z: coordinates.z, w: coordinates.w },
+    isActive
   );
-  newNodes.push({ isActive, x, y, z, w });
-  return newNodes;
 }

@@ -1,9 +1,7 @@
-import { Node } from "./models.ts";
+import { Coordinates } from "./models.ts";
 
-export function getNeighborNodeCoordinates(
-  node: Node
-): { x: number; y: number; z: number; w: number }[] {
-  const neighbors: { x: number; y: number; z: number; w: number }[] = [];
+export function getNeighborNodeCoordinates(node: Coordinates): Coordinates[] {
+  const neighbors: Coordinates[] = [];
   for (let w = -1; w <= 1; w++) {
     for (let z = -1; z <= 1; z++) {
       for (let y = -1; y <= 1; y++) {

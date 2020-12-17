@@ -1,57 +1,50 @@
 import { getActiveNeighborCount } from "./getActiveNeighborCount.ts";
 import { setStatusAtPosition } from "./setStatusAtPosition.ts";
-import { Node } from "./models.ts";
+import { Coordinates } from "./models.ts";
 import { getNeighborNodeCoordinates } from "./getNeighborNodeCoordinates.ts";
 import { getNodeAtPosition } from "./getNodeAtPosition.ts";
+import { getStatusAtPosition } from "./getStatusAtPosition.ts";
 
-export function executeCycle(nodes: Node[], cycle: number): Node[] {
-  let newNodes: Node[] = [];
-  const nodesToCheck: Node[] = [...nodes];
+export function executeCycle(nodes: Map<Coordinates, boolean>, cycle: number) {
+  const nodesToCheck = new Set<Coordinates>();
   let count = 0;
-  nodes.forEach((node) => {
+  nodes.forEach((status, coordinate) => {
     count++;
     if (count % 1000 === 0) {
       console.clear();
       console.log(
-        `Computing nodes to check ${count + 1} / ${nodes.length} in cycle: ${
+        `Computing nodes to check ${count + 1} / ${nodes.size} in cycle: ${
           cycle + 1
-        } / 6`
+        }`
       );
     }
-    const coordinates = getNeighborNodeCoordinates(node);
+    const coordinates = getNeighborNodeCoordinates(coordinate);
     coordinates.forEach((coord) => {
-      const existingNode = getNodeAtPosition(
-        nodesToCheck,
-        coord.x,
-        coord.y,
-        coord.z,
-        coord.w
-      );
+      const existingNode = getNodeAtPosition(nodes, coord);
       if (existingNode === null) {
-        nodesToCheck.push({
-          isActive: false,
-          x: coord.x,
-          y: coord.y,
-          z: coord.z,
-          w: coord.w,
-        });
+        // console.log("existing JE NULL");
+        // nodesToCheck.add(coord);
+      } else {
+        console.log("existing NIJEEEEEEEEEEEE");
       }
     });
   });
 
-  for (let index = 0; index < nodesToCheck.length; index++) {
+  let index = 0;
+  for (const coords of nodesToCheck) {
+    index++;
     if (index % 1000 === 0) {
       console.clear();
       console.log(
-        `Checking node ${index + 1} out of ${nodesToCheck.length} in Cycle: ${
+        `Checking node ${index} out of ${nodesToCheck.size} in Cycle: ${
           cycle + 1
-        } / 6`
+        }`
       );
     }
-    const node = nodesToCheck[index];
-    const count = getActiveNeighborCount(nodes, node);
+    const node = getStatusAtPosition(nodes, coords);
+    const count = getActiveNeighborCount(nodes, coords);
     let newStatus = true;
-    if (node.isActive) {
+    if (node) {
       if (count !== 2 && count !== 3) {
         newStatus = false;
       }
@@ -60,14 +53,6 @@ export function executeCycle(nodes: Node[], cycle: number): Node[] {
         newStatus = false;
       }
     }
-    newNodes = setStatusAtPosition(
-      newNodes,
-      node.x,
-      node.y,
-      node.z,
-      node.w,
-      newStatus
-    );
+    setStatusAtPosition(nodes, coords, newStatus);
   }
-  return newNodes;
 }
