@@ -6,7 +6,7 @@ export function validateRule(
   ruleSet: RuleSet
 ): boolean {
   const validSequence = computeValidSequence(rules, input, "", ruleSet);
-  return validSequence.length > 0;
+  return validSequence !== null && validSequence.length === input.length;
 }
 
 function computeValidSequence(
@@ -14,19 +14,69 @@ function computeValidSequence(
   input: string,
   formedRule: string,
   rule: RuleSet
-): string {}
+): string | null {
+  if (!Array.isArray(rule.rule)) {
+    formedRule += rule.rule;
+    if (input.startsWith(formedRule)) {
+      return formedRule;
+    } else {
+      return null;
+    }
+  } else {
+    const oldFormed = formedRule;
+    let failed = false;
+    for (let i = 0; i < rule.rule.length; i++) {
+      const subRule = rule.rule[i];
+      const resolved = computeValidSequence(
+        ruleSet,
+        input,
+        formedRule,
+        resolveRule(ruleSet, subRule)
+      );
+      if (resolved) {
+        formedRule = resolved;
+      } else {
+        failed = true;
+        break;
+      }
+    }
 
-function ruleToString(rule: Rule): string {
-  if (Array.isArray(rule)) {
-    return rule.reduce((str, cur) => (str += cur.toString()), "");
+    if (!failed) {
+      return formedRule;
+    }
+
+    formedRule = oldFormed;
+
+    if (rule.altRule) {
+      failed = false;
+      for (let i = 0; i < rule.altRule.length; i++) {
+        const subRule = rule.altRule[i];
+        const resolved = computeValidSequence(
+          ruleSet,
+          input,
+          formedRule,
+          resolveRule(ruleSet, subRule as number)
+        );
+        if (resolved) {
+          formedRule = resolved;
+        } else {
+          failed = true;
+          break;
+        }
+      }
+      if (!failed) {
+        return formedRule;
+      }
+    }
+
+    return null;
   }
-  return rule;
 }
 
-function ruleSetToStrings(ruleSet: RuleSet): string[] {
-  const ruleStrings = [ruleToString(ruleSet.rule)];
-  if (ruleSet.altRule) {
-    ruleStrings.push(ruleToString(ruleSet.altRule));
+function resolveRule(ruleSet: RuleSet[], ruleNumber: number): RuleSet {
+  const rule = ruleSet.find((rs) => rs.number === ruleNumber);
+  if (!rule) {
+    throw new Error("missing rule " + ruleNumber);
   }
-  return ruleStrings;
+  return rule;
 }
